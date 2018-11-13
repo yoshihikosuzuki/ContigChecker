@@ -32,8 +32,7 @@ In addition, following types of regions in the given contigs are annotated and (
 
 ## How to install
 
-```bash
->>>>>>> origin/master
+```
 $ python3 setup.py install
 ```
 
@@ -48,8 +47,7 @@ $ python3 setup.py install
 
 ## How to run
 
-```bash
->>>>>>> origin/master
+```
 $ contig_checker.py map <contigs_fasta> <reads_fasta>
 $ contig_checker.py plot
 $ contig_checker.py categorize
