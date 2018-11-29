@@ -2,7 +2,6 @@ from typing import List
 from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
-from BITS.utils import run_command
 
 
 def load_dbdump(dbdump_fname):
@@ -243,12 +242,10 @@ def calc_depth(counts_fname):
     reads = load_dbdump("READS.dbdump")
     mappings = load_ladump("ladump", contigs, reads)
     counts = mappings_to_counts(mappings, contigs)
+    depths = counts_to_depth(counts)
 
     contigs.to_csv("contigs.csv", sep='\t')
     reads.to_csv("reads.csv", sep='\t')
     mappings.to_csv("mappings.csv", sep='\t')
     counts.to_csv("counts.csv", sep='\t')
-
-
-    counts = pd.read_csv(counts_fname, sep='\t')
-    depths = counts_to_depth(counts)
+    depths.to_csv("depths.csv", sep='\t')
