@@ -1,7 +1,9 @@
+import pickle
 from typing import List
 from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
+from logzero import logger
 
 
 def load_dbdump(dbdump_fname):
@@ -149,7 +151,7 @@ def load_ladump(ladump_fname, contigs, reads):
 
 def vectorize(pos, l):
     """
-    List or list of list of int -> frequency vector of the values. l is the maximum value.
+    List or list of list of int -> frequency vector of the values. l is the maximum value (= contig length).
     """
 
     ret = np.zeros(l, dtype=int)
@@ -173,7 +175,7 @@ def mappings_to_counts(mappings, contigs):
     """
 
     # Split by contigs and mapping type (clipped or proper)
-    gb = mappings.groupby(["contig_id", "terminal"])
+    gb = mappings.groupby(["contig_id", "terminal_type"])
 
     # contains, dovetail start/end reads
     c = gb.apply(lambda df: df[df["map_type"] == "contains"].shape[0])
@@ -182,15 +184,15 @@ def mappings_to_counts(mappings, contigs):
 
     # start/end points of mapped reads
     sc = gb.apply(lambda df: vectorize(df[df["map_type"].isin(set(["contained", "end_dovetail"]))]["contig_start"],
-                                       contigs.loc[df.name, "length"]))
+                                       contigs.loc[df.name[0], "length"]))
     ec = gb.apply(lambda df: vectorize(df[df["map_type"].isin(set(["contained", "start_dovetail"]))]["contig_end"],
-                                       contigs.loc[df.name, "length"]))
+                                       contigs.loc[df.name[0], "length"]))
 
     # chain breaks
-    sb = gb.apply(lambda df: vectorize(df[df["num"] == "chain"]["break_start"],
-                                       contigs.loc[df.name, "length"]))
-    eb = gb.apply(lambda df: vectorize(df[df["num"] == "chain"]["break_end"],
-                                       contigs.loc[df.name, "length"]))
+    sb = gb.apply(lambda df: vectorize(df[df["split_type"] == "chain"]["break_starts"],
+                                       contigs.loc[df.name[0], "length"]))
+    eb = gb.apply(lambda df: vectorize(df[df["split_type"] == "chain"]["break_ends"],
+                                       contigs.loc[df.name[0], "length"]))
 
     return pd.DataFrame({"n_contains": c,
                          "n_dovetail_start": s,
@@ -236,16 +238,27 @@ def counts_to_depth(counts):
     return pd.DataFrame({"depth": d, "break_depth": db})
 
 
-def calc_depth(counts_fname):
+def calc_depth(contig_db_prefix="CONTIGS",
+               read_db_prefix="READS"):
     # Load the dump data and reformat them
-    contigs = load_dbdump("CONTIGS.dbdump")
-    reads = load_dbdump("READS.dbdump")
-    mappings = load_ladump("ladump", contigs, reads)
-    counts = mappings_to_counts(mappings, contigs)
-    depths = counts_to_depth(counts)
+    contigs = load_dbdump(f"{contig_db_prefix}.dbdump")
+    contigs.to_pickle("contigs.pkl")
+    #contigs = pickle.load(open("contigs.pkl", 'rb'))
 
-    contigs.to_csv("contigs.csv", sep='\t')
-    reads.to_csv("reads.csv", sep='\t')
-    mappings.to_csv("mappings.csv", sep='\t')
-    counts.to_csv("counts.csv", sep='\t')
-    depths.to_csv("depths.csv", sep='\t')
+    reads = load_dbdump(f"{read_db_prefix}.dbdump")
+    reads.to_pickle("reads.pkl")
+    #reads = pickle.load(open("reads.pkl", 'rb'))
+
+    # Aggregate into a single table which summarizes mapped reads and their types
+    mappings = load_ladump(f"{contig_db_prefix}.{read_db_prefix}.ladump", contigs, reads)
+    mappings.to_pickle("mappings.pkl")
+    #mappings = pickle.load(open("mappings.pkl", 'rb'))
+
+    # Calculate frequencies of starting/ending positions of the mapped reads
+    counts = mappings_to_counts(mappings, contigs)
+    counts.to_pickle("counts.pkl")
+    #counts = pickle.load(open("counts.pkl", 'rb'))
+
+    # Calculate depth transition
+    depths = counts_to_depth(counts)
+    depths.to_pickle("depths.pkl")

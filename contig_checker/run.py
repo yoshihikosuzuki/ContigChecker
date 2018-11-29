@@ -2,10 +2,11 @@ from collections import defaultdict
 from logzero import logger
 from .cc_map import run_mapping
 from .cc_depth import calc_depth
+from .cc_annotate import annotate_regions
 #from .cc_plot import plot_figure
 #from .cc_modify import modify_sequence
 
-cfg_sections = ["Map", "Depth"]
+cfg_sections = ["Map", "Depth", "Annotate"]
 
 
 def main():
@@ -14,7 +15,9 @@ def main():
     if "Map" in cfgs:
         run_mapping(**cfgs["Map"])
     elif "Depth" in cfgs:
-        calc_depth(cfgs["Depth"])
+        calc_depth(**cfgs["Depth"])
+    elif "Annotate" in cfgs:
+        annotate_regions(**cfgs["Annotate"])
     elif "Plot" in cfgs:
         #plot_figure()
         pass
