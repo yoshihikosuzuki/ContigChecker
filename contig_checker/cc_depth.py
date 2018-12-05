@@ -164,7 +164,7 @@ def vectorize(pos, l):
     return ret
 
 
-def mappings_to_counts(mappings, contigs):
+def mappings_to_counts(mappings, contigs):   # XXX: mapped readがないcontigのrowが作られないのを直す(ex. contig id 16)
     """
     For each mapping type ("proper" or "clipped"), calculate the number of:
 
