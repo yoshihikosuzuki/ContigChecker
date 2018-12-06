@@ -203,30 +203,6 @@ def mappings_to_counts(mappings, contigs):   # XXX: mapped readがないcontig�
                          "array_n_break_end": eb})
 
 
-# Sum up start/end count around peaks (aggregated counts disappear except the peaks)
-def aggregate_counts(a, count_threshold, window_size):
-    x_spike = np.where(a >= count_threshold)[0]
-    x_done = np.zeros(len(a))
-    for x in x_spike:
-        x_done[x] = a[x]   # ex. [0, 0, ..., 0, 5, 0, ..., 0, 8, 0, ..., 0, 0]
-    while sum(x_done) > 0:
-        max_pos = np.argmax(x_done)
-        s = 0
-        for i in range(max_pos - int(window_size / 2), max_pos + int(window_size / 2) + 1):
-            s += a[i]
-            a[i] = 0
-            x_done[i] = 0
-        a[max_pos] = s
-    return np.where(a >= count_threshold)[0]
-
-
-def find_spike(a_proper, a_all, count_threshold, window_size):
-    x_proper = aggregate_counts(a_proper, count_threshold, window_size)
-    x_all = aggregate_counts(a_all, count_threshold, window_size)
-    #return sorted(list(set(x_proper) | set(x_all)))
-    return (x_proper, x_all)
-
-
 def counts_to_depth(counts):
     # depth
     d = (counts["n_dovetail_start"]   # at the start edge of the contig
@@ -241,18 +217,18 @@ def counts_to_depth(counts):
 def calc_depth(contig_db_prefix="CONTIGS",
                read_db_prefix="READS"):
     # Load the dump data and reformat them
-    contigs = load_dbdump(f"{contig_db_prefix}.dbdump")
-    contigs.to_pickle("contigs.pkl")
-    #contigs = pickle.load(open("contigs.pkl", 'rb'))
+    #contigs = load_dbdump(f"{contig_db_prefix}.dbdump")
+    #contigs.to_pickle("contigs.pkl")
+    contigs = pickle.load(open("contigs.pkl", 'rb'))
 
-    reads = load_dbdump(f"{read_db_prefix}.dbdump")
-    reads.to_pickle("reads.pkl")
+    #reads = load_dbdump(f"{read_db_prefix}.dbdump")
+    #reads.to_pickle("reads.pkl")
     #reads = pickle.load(open("reads.pkl", 'rb'))
 
     # Aggregate into a single table which summarizes mapped reads and their types
-    mappings = load_ladump(f"{contig_db_prefix}.{read_db_prefix}.ladump", contigs, reads)
-    mappings.to_pickle("mappings.pkl")
-    #mappings = pickle.load(open("mappings.pkl", 'rb'))
+    #mappings = load_ladump(f"{contig_db_prefix}.{read_db_prefix}.ladump", contigs, reads)
+    #mappings.to_pickle("mappings.pkl")
+    mappings = pickle.load(open("mappings.pkl", 'rb'))
 
     # Calculate frequencies of starting/ending positions of the mapped reads
     counts = mappings_to_counts(mappings, contigs)
@@ -260,5 +236,5 @@ def calc_depth(contig_db_prefix="CONTIGS",
     #counts = pickle.load(open("counts.pkl", 'rb'))
 
     # Calculate depth transition
-    depths = counts_to_depth(counts)
-    depths.to_pickle("depths.pkl")
+    #depths = counts_to_depth(counts)
+    #depths.to_pickle("depths.pkl")
