@@ -4,27 +4,19 @@ import pandas as pd
 from logzero import logger
 
 
-# TODO: refactoring
-def aggregate_counts(count_array,   # ex. array_n_start
-                     count_threshold=3,   # TODO: calculate from median depth
-                     window_size=100):
-    """
-    Find start/end spikes of mapped reads using histogram density estimation with a specific window size.
-    """
-
-    x_spike = np.where(count_array >= count_threshold)[0]   # TODO: filtering after density estimation
-    x_done = np.zeros(len(count_array), dtype=int)
-    for x in x_spike:
-        x_done[x] = count_array[x]   # TODO: refactering of this filtering
-    while sum(x_done) > 0:
-        max_pos = np.argmax(x_done)
-        s = 0
-        for i in range(max_pos - int(window_size / 2), max_pos + int(window_size / 2) + 1):
-            s += count_array[i]
-            count_array[i] = 0   # TODO: make it a non-destructive method or copy it first
-            x_done[i] = 0
-        count_array[max_pos] = s
-    return np.where(count_array >= count_threshold)[0]   # array of coordinates of the spikes
+def find_spikes(count_array,
+                count_threshold=3,   # TODO: calculate based on the median depth
+                window_size=100):
+    pos = np.where(count_array > count_threshold)[0]
+    val = count_array[pos]
+    spikes = []
+    while np.sum(val) > 0:
+        # Iteratively find the highest spike and ignore values around the spike
+        peak_pos = pos[np.argmax(val)]
+        spikes.append(peak_pos)
+        val[np.where((peak_pos - int(window_size / 2) < pos)
+                     & (pos < peak_pos + int(window_size / 2) + 1))[0]] = 0
+    return np.array(spikes)
 
 
 def _annotate_regions(counts):
@@ -131,20 +123,12 @@ def annotate_regions():
 
     ## Annotate terminal/interspersed repeats
     # Start/end spikes
-    spike_proper = (counts.loc[pd.IndexSlice[:, "proper"],   # extract only proper
-                               ["array_n_start",
-                                "array_n_end",
-                                "array_n_break_start",
-                                "array_n_break_end"]]
-                    .applymap(lambda df: aggregate_counts(df))
-                    .reset_index("terminal_type").drop("terminal_type", axis=1))   # remove second index
-    
-    spike_all = (counts[["array_n_start",
-                         "array_n_end",
-                         "array_n_break_start",
-                         "array_n_break_end"]]
-                 .groupby("contig_id")
-                 .apply(sum)   # proper + clipped
-                 .applymap(lambda df: aggregate_counts(df)))   # TODO: check abort
+    spikes = (counts[["array_n_start",
+                      "array_n_end",
+                      "array_n_break_start",
+                      "array_n_break_end"]]
+              .applymap(lambda df: find_spikes(df)))
+    #spikes.to_pickle("spikes.pkl")
+    #spikes = pickle.load(open("spikes.pkl", 'rb'))
 
     ## Annotate misassemblies
