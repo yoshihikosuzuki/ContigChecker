@@ -6,7 +6,7 @@ plt.style.use('ggplot')
 py.init_notebook_mode()
 
 
-def plot(contig_id, width=1000, height=600):
+def plot(contig_id, width=1000, height=600, out_html=None):
     contig_length = contigs.loc[contig_id, "length"]
     
     n_contains = counts.loc[(contig_id, "proper"), "n_contains"]
@@ -65,26 +65,26 @@ def plot(contig_id, width=1000, height=600):
                        marker=dict(color=["blue", "green", "blue", "green"], symbol=24, size=14),
                        name="n_dovetail")
     
-    trace5 = go.Scatter(x=x_start,
-                    y=array_n_start_proper[x_start],
+    trace5 = go.Scatter(x=x_start_proper,
+                    y=array_n_start_proper[x_start_proper] if len(x_start_proper) > 0 else [],
                         mode="markers",
                         marker=dict(color="blue", symbol=8, size=14),
                    name="start (proper)")
     
-    trace6 = go.Scatter(x=x_start,
-                    y=array_n_start_clipped[x_start],
+    trace6 = go.Scatter(x=x_start_clipped,
+                    y=array_n_start_clipped[x_start_clipped] if len(x_start_clipped) > 0 else [],
                         mode="markers",
                         marker=dict(color="green", symbol=8, size=14),
                    name="start (clipped)")
     
-    trace7 = go.Scatter(x=x_end,
-                    y=array_n_end_proper[x_end],
+    trace7 = go.Scatter(x=x_end_proper,
+                    y=array_n_end_proper[x_end_proper] if len(x_end_proper) > 0 else [],
                         mode="markers",
                         marker=dict(color="blue", symbol=7, size=14),
                    name="end (proper)")
     
-    trace8 = go.Scatter(x=x_end,
-                    y=array_n_end_clipped[x_end],
+    trace8 = go.Scatter(x=x_end_clipped,
+                    y=array_n_end_clipped[x_end_clipped] if len(x_end_clipped) > 0 else [],
                         mode="markers",
                         marker=dict(color="green", symbol=7, size=14),
                    name="end (clipped)")
@@ -101,38 +101,59 @@ def plot(contig_id, width=1000, height=600):
                         line=dict(color="orchid"),
                             name="break depth (clipped)")
     
-    trace11 = go.Scatter(x=x_break_start,
-                    y=-array_n_break_start_proper[x_break_start],
+    trace11 = go.Scatter(x=x_break_start_proper,
+                    y=-array_n_break_start_proper[x_break_start_proper] if len(x_break_start_proper) > 0 else [],
                         mode="markers",
                         marker=dict(color="darkorange", symbol=8, size=14),
                    name="break start (proper)")
     
-    trace12 = go.Scatter(x=x_break_start,
-                    y=-array_n_break_start_clipped[x_break_start],
+    trace12 = go.Scatter(x=x_break_start_clipped,
+                    y=-array_n_break_start_clipped[x_break_start_clipped] if len(x_break_start_clipped) > 0 else [],
                         mode="markers",
                         marker=dict(color="purple", symbol=8, size=14),
                    name="break start (clipped)")
     
-    trace13 = go.Scatter(x=x_break_end,
-                    y=-array_n_break_end_proper[x_break_end],
+    trace13 = go.Scatter(x=x_break_end_proper,
+                    y=-array_n_break_end_proper[x_break_end_proper] if len(x_break_end_proper) > 0 else [],
                         mode="markers",
                         marker=dict(color="darkorange", symbol=7, size=14),
                    name="break end (proper)")
     
-    trace14 = go.Scatter(x=x_break_end,
-                    y=-array_n_break_end_clipped[x_break_end],
+    trace14 = go.Scatter(x=x_break_end_clipped,
+                    y=-array_n_break_end_clipped[x_break_end_clipped] if len(x_break_end_clipped) > 0 else [],
                         mode="markers",
                         marker=dict(color="purple", symbol=7, size=14),
                    name="break end (clipped)")
         
+    # Repeat/break annotation
+    repeats_proper = annotations.loc[(contig_id, "proper"), "repeats"]
+    repeats_clipped = annotations.loc[(contig_id, "clipped"), "repeats"]
+    breaks_proper = annotations.loc[(contig_id, "proper"), "breaks"]
+    breaks_clipped = annotations.loc[(contig_id, "clipped"), "breaks"]
+    y_pos = np.max([np.max(depth_proper), np.max(depth_clipped)]) * 1.1
+
+    shapes = []
+    for s, t in repeats_proper:
+        shapes.append(dict(type="line", x0=s, y0=y_pos, x1=t, y1=y_pos, line=dict(color="black")))
+    for s, t in repeats_clipped:
+        shapes.append(dict(type="line", x0=s, y0=y_pos, x1=t, y1=y_pos, line=dict(color="olive")))    
+    for s, t in breaks_proper:
+        shapes.append(dict(type="line", x0=s, y0=y_pos, x1=t, y1=y_pos, line=dict(color="pink")))
+    for s, t in breaks_clipped:
+        shapes.append(dict(type="line", x0=s, y0=y_pos, x1=t, y1=y_pos, line=dict(color="red")))
+
     layout = go.Layout(width=width, height=height,
                        margin=go.layout.Margin(l=30, r=30, t=50, b=100, pad=0),
                            hovermode='closest',
                        title=f"{contigs.loc[contig_id, 'header']}",
                            xaxis=dict(showgrid=False, zeroline=False),
                            yaxis=dict(showgrid=False),
-                       #shapes=shapes,
+                       shapes=shapes,
                       legend=dict(orientation="h"))
 
     figure = go.Figure(data=[trace5, trace6, trace7, trace8, trace1, trace2, trace3, trace4, trace11, trace12, trace13, trace14, trace9, trace10], layout=layout)
-    py.iplot(figure)
+    
+    if out_html is not None:
+        py.plot(figure, filename=out_html)
+    else:
+        py.iplot(figure)
