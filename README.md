@@ -1,6 +1,7 @@
 # ContigChecker
 A tool for checking circularity and correctness of contigs of especially metagenomes
 
+
 ## Quick summary
 
 This tool offers a function to classify each given contig into one of the following three categories:
@@ -20,7 +21,7 @@ In addition, following types of regions in the given contigs are annotated and (
 | Complete linear |          start + end           |                -                |
 
 
-## Prerequirements
+## Requirements
 
 * DAZZLER modules
   * DAZZ_DB
@@ -30,26 +31,24 @@ In addition, following types of regions in the given contigs are annotated and (
   * logzero
 
 
-## How to install
+## How to install and run
 
 ```
+$ git clone https://github.com/yoshihikosuzuki/ContigChecker
+$ cd ContigChecker
 $ python3 setup.py install
 ```
 
+After that, you need to copy `input.cfg` to somewhere and edit it, and run as follows.
 
-## Input data
+```
+$ ctcc.py input.cfg
+```
+
+
+## Config file format and input data
 
 * `<contigs_fasta>`
   * A fasta file of the contigs you assembled using any assembler.
 * `<reads_fasta>`
   * A fasta file of the reads you used for the assembly.
-
-
-## How to run
-
-```
-$ contig_checker.py map <contigs_fasta> <reads_fasta>
-$ contig_checker.py plot
-$ contig_checker.py categorize
-$ contig_checker.py modify
-```
