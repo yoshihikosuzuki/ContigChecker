@@ -30,6 +30,13 @@ def generate_reads(seq_fname, depth):
     return run_command(f"gsed -n '2~4p' {out_fname}").strip().split('\n')
 
 
+def single_to_multi(s, width=100):
+    """
+    Cut a single sequence at every <width> bp and return as a list.
+    """
+    return [s[i:i + width] for i in range(0, len(s), width)]
+
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Simulate a sequence with a pair of terminal repeats and noisy reads sampled from it using PBSIM")
@@ -52,9 +59,15 @@ if __name__ == "__main__":
 
     true_seq = generate_tr_seq(args.seq_tot_len, args.terminal_repeat_len)
     with open("true_sequence.fasta", 'w') as f:
-        f.write(f">Seq/0/0_{len(true_seq)}\n{true_seq}\n")
+        f.write(f">Seq/0/0_{len(true_seq)}\n")
+        seqs = single_to_multi(true_seq)
+        for seq in seqs:
+            f.write(f"{seq}\n")
 
     reads = generate_reads("true_sequence.fasta", args.read_depth)
     with open("reads.fasta", 'w') as f:
         for i, read in enumerate(reads):
-            f.write(f">Read/{i}/0_{len(read)}\n{read}\n")
+            f.write(f">Read/{i}/0_{len(read)}\n")
+            seqs = single_to_multi(read)
+            for seq in seqs:
+                f.write(f"{seq}\n")
