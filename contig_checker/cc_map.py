@@ -26,7 +26,7 @@ def run_mapping(contig_fasta="contigs.fasta",
                                  f"DBdump -r -h {read_db_prefix} > {read_db_prefix}.dbdump"]),
                       job_name="run_damapper",
                       n_core=n_core,
-                      wait=False)
+                      wait=True)
 
     with open(script_fname, 'w') as f:
         f.write(script)
