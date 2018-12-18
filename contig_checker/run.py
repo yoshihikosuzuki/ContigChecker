@@ -14,15 +14,15 @@ def main():
     cfgs = load_cfgs(args.config_file)
     if "Map" in cfgs:
         run_mapping(**cfgs["Map"])
-    elif "Depth" in cfgs:
+    if "Depth" in cfgs:
         calc_depth(**cfgs["Depth"])
-    elif "Annotate" in cfgs:
+    if "Annotate" in cfgs:
         #annotate_regions(**cfgs["Annotate"])
         annotate_regions()
-    elif "Plot" in cfgs:
+    if "Plot" in cfgs:
         #plot_figure()
         pass
-    elif "Modify" in cfgs:
+    if "Modify" in cfgs:
         #modify_sequence()
         pass
 
