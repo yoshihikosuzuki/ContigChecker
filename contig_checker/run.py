@@ -17,7 +17,8 @@ def main():
     elif "Depth" in cfgs:
         calc_depth(**cfgs["Depth"])
     elif "Annotate" in cfgs:
-        annotate_regions(**cfgs["Annotate"])
+        #annotate_regions(**cfgs["Annotate"])
+        annotate_regions()
     elif "Plot" in cfgs:
         #plot_figure()
         pass
