@@ -3,7 +3,7 @@ from logzero import logger
 from .cc_map import run_mapping
 from .cc_depth import calc_depth
 from .cc_annotate import annotate_regions
-#from .cc_plot import plot_figure
+from .cc_plot import Plotter
 #from .cc_modify import modify_sequence
 
 cfg_sections = ["Map", "Depth", "Annotate"]
@@ -20,8 +20,8 @@ def main():
         #annotate_regions(**cfgs["Annotate"])
         annotate_regions()
     if "Plot" in cfgs:
-        #plot_figure()
-        pass
+        p = Plotter()
+        p.plot(cfgs["Plot"]["contig_id"])
     if "Modify" in cfgs:
         #modify_sequence()
         pass

@@ -56,9 +56,9 @@ def find_repeats(x_starts,   # positions of start spikes
 
 def annotate_regions():
     ## Load files
-    contigs = pickle.load(open("contigs.pkl", 'rb'))
-    reads = pickle.load(open("reads.pkl", 'rb'))
-    mappings = pickle.load(open("mappings.pkl", 'rb'))
+    #contigs = pickle.load(open("contigs.pkl", 'rb'))
+    #reads = pickle.load(open("reads.pkl", 'rb'))
+    #mappings = pickle.load(open("mappings.pkl", 'rb'))
     counts = pickle.load(open("counts.pkl", 'rb'))
     depths = pickle.load(open("depths.pkl", 'rb'))
 
