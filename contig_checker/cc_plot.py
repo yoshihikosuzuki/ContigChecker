@@ -1,3 +1,4 @@
+import os.path
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,16 +9,32 @@ plt.style.use('ggplot')
 
 
 class Plotter:
-    def __init__(self):
-        self.contigs = pickle.load(open("contigs.pkl", 'rb'))
-        self.reads = pickle.load(open("reads.pkl", 'rb'))
-        self.mappings = pickle.load(open("mappings.pkl", 'rb'))
-        self.counts = pickle.load(open("counts.pkl", 'rb'))
-        self.depths = pickle.load(open("depths.pkl", 'rb'))
-        self.spikes = pickle.load(open("spikes.pkl", 'rb'))
-        self.annotations = pickle.load(open("annotations.pkl", 'rb'))
+    """
+    Before running this, you must prepare *.pkl using modules of CTCC.
+
+    Basic usage from ipython notebook:
+        from contig_checker import Plotter
+        p = Plotter("your_working_directory_name")
+        p.plot(any_contig_id)
+    """
+
+    def __init__(self, dir_prefix="."):
+        self.contigs = pickle.load(open(os.path.join(dir_prefix, "contigs.pkl"), 'rb'))
+        self.reads = pickle.load(open(os.path.join(dir_prefix, "reads.pkl"), 'rb'))
+        self.mappings = pickle.load(open(os.path.join(dir_prefix, "mappings.pkl"), 'rb'))
+        self.counts = pickle.load(open(os.path.join(dir_prefix, "counts.pkl"), 'rb'))
+        self.depths = pickle.load(open(os.path.join(dir_prefix, "depths.pkl"), 'rb'))
+        self.spikes = pickle.load(open(os.path.join(dir_prefix, "spikes.pkl"), 'rb'))
+        self.annotations = pickle.load(open(os.path.join(dir_prefix, "annotations.pkl"), 'rb'))
 
     def plot(self, contig_id, width=1000, height=600, out_html=None):
+        """
+        NOTE: <contig_id> can be a DAZZ_DB ID or a fasta header name.
+        """
+
+        if isinstance(contig_id, str):   # convert fasta header into dazz_db id
+            contig_id = self.contigs[self.contigs["header"] == contig_id].index[0]
+
         contig_length = self.contigs.loc[contig_id, "length"]
 
         x_start_proper = self.spikes.loc[(contig_id, "proper"), "array_n_start"]

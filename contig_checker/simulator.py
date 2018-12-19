@@ -1,9 +1,9 @@
-from random import choices
+import random
 from BITS.utils import run_command
 
 
 def generate_random_seq(length, bases=['A', 'C', 'G', 'T']):
-    return ''.join(choices(bases, k=length))
+    return ''.join(random.choices(bases, k=length))
 
 
 def generate_tr_seq(tot_len, terminal_repeat_len):
@@ -28,6 +28,21 @@ def generate_reads(seq_fname, depth):
 
     # Convert fastq to daligner-acceptable fasta
     return run_command(f"gsed -n '2~4p' {out_fname}").strip().split('\n')
+
+
+def sample_seq(s, mu=8.9, sigma=0.5):
+    """
+    Cut out a substring from <s> whose length obeys log-normal distribution.
+    This function generates terminal-including sequences when they reach it during sampling.
+    """
+    direction = random.choice((-1, 1))   # NOTE: this is not strand, but for generating terminal-ending reads
+    start = random.randint(0, len(s) - 1)
+    length = int(random.lognormvariate(mu, sigma))
+    return s[start:min(start + length, len(s))] if direction == 1 else s[max(0, start - length + 1):start + 1]
+
+
+def introduce_noise(s):
+    pass
 
 
 def single_to_multi(s, width=100):
@@ -64,6 +79,7 @@ if __name__ == "__main__":
         for seq in seqs:
             f.write(f"{seq}\n")
 
+    """
     reads = generate_reads("true_sequence.fasta", args.read_depth)
     with open("reads.fasta", 'w') as f:
         for i, read in enumerate(reads):
@@ -71,3 +87,16 @@ if __name__ == "__main__":
             seqs = single_to_multi(read)
             for seq in seqs:
                 f.write(f"{seq}\n")
+    """
+
+    with open("reads.fasta", 'w') as f:
+        length_sum = 0
+        index = 0
+        while length_sum / len(true_seq) < args.read_depth:
+            read = sample_seq(true_seq)
+            f.write(f">Read/{index}/0_{len(read)}\n")   # TODO: rewrite using BITS
+            seqs = single_to_multi(read)
+            for seq in seqs:
+                f.write(f"{seq}\n")
+            index += 1
+            length_sum += len(read)
